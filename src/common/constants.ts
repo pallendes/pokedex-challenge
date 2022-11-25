@@ -20,4 +20,5 @@ export const POKEMON_TYPE_COLOR_MAP: PokemonTypeColorMap = {
   Ghost: '#7b62a3',
   Steel: '#9eb7b8',
   Dragon: 'linear-gradient(180deg, #53a4cf 50%, #f16e57 50%)',
+  Dark: '#707070',
 };

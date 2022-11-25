@@ -9,6 +9,7 @@ import {
   Select,
   SelectChangeEvent,
   TextField,
+  Typography,
 } from '@mui/material';
 import { ChangeEvent, ReactElement, useEffect, useState } from 'react';
 import { Waypoint } from 'react-waypoint';
@@ -17,9 +18,10 @@ import {
   PokemonCard,
   PokemonCardSkeleton,
 } from '../../components/pokemon-card';
-import { TypeFilter } from '../../components/type-filter';
 import { useFavorites } from '../../hooks/favorites';
 import { Pokemon } from '../../__generated__/graphql';
+import { TypeFilter } from './type-filter';
+import { filtersBuilder } from './utils';
 
 const GET_ALL_POKEMONS = gql(/* GraphQL */ `
   query AllPokemon($filter: Boolean, $limit: Int) {
@@ -47,6 +49,10 @@ export const Home = (): ReactElement => {
   const [visiblePokemonList, setVisiblePokemonList] = useState<Pokemon[]>([]);
   const [sortBy, setSortBy] = useState<string>('');
   const [searchValue, setSearchValue] = useState<string>('');
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState<string>('');
+  const [activeTypeFilters, setActiveTypeFilters] = useState<TypeFilters[]>([]);
+
+  const applyFilters = filtersBuilder(data?.allPokemon ?? []);
 
   useEffect(() => {
     if (data) {
@@ -57,30 +63,19 @@ export const Home = (): ReactElement => {
     }
   }, [data]);
 
+  useEffect(() => {
+    const filteredPokemonList = applyFilters({
+      searchText: debouncedSearchValue,
+      sortCriteria: sortBy,
+      typeFilter: activeTypeFilters,
+    });
+
+    setPokemons([...filteredPokemonList]);
+    setVisiblePokemonList(filteredPokemonList.slice(0, VISIBLE_ELEMENTS));
+  }, [debouncedSearchValue, sortBy, activeTypeFilters]);
+
   const handleSortSelection = (e: SelectChangeEvent): void => {
-    const sortValue = e.target.value;
-
-    let sortedPokemons = [];
-
-    switch (sortValue) {
-      case 'name-asc':
-        sortedPokemons = [...pokemons].sort((a, b) =>
-          a?.name && b?.name ? a?.name.localeCompare(b?.name) : 0
-        );
-        break;
-      case 'name-desc':
-        sortedPokemons = [...pokemons].sort((a, b) =>
-          a?.name && b?.name ? b?.name.localeCompare(a?.name) : 0
-        );
-        break;
-      default:
-        sortedPokemons = [...(data?.allPokemon as Pokemon[])];
-        break;
-    }
-
-    setVisiblePokemonList(sortedPokemons.slice(0, VISIBLE_ELEMENTS));
-    setPokemons(sortedPokemons);
-    setSortBy(sortValue);
+    setSortBy(e.target.value);
   };
 
   let filterTimeout: NodeJS.Timeout;
@@ -88,37 +83,19 @@ export const Home = (): ReactElement => {
   const onSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
     clearTimeout(filterTimeout);
 
-    const searchValue = e.target.value;
-    setSearchValue(searchValue);
+    const _searchValue = e.target.value;
+    setSearchValue(_searchValue);
 
     filterTimeout = setTimeout(() => {
-      const filteredPokemons = [...pokemons].filter(
-        (p) =>
-          p.name?.toLowerCase().includes(searchValue.toLowerCase()) ??
-          p.types
-            ?.map((t) => t?.name)
-            .some((n) => n?.toLowerCase().includes(searchValue.toLowerCase()))
-      );
-
-      setVisiblePokemonList(filteredPokemons.slice(0, VISIBLE_ELEMENTS));
+      setDebouncedSearchValue(_searchValue);
     }, 500);
   };
 
   const handleFavoriteButtonClick = (pokemon: Pokemon): void =>
     isFavorite(pokemon) ? removeFavorite(pokemon) : addFavorite(pokemon);
 
-  const handleFilterByType = (filters: string[]): void => {
-    if (!data) return;
-
-    if (filters.length === 0) {
-      setVisiblePokemonList([...pokemons].slice(0, VISIBLE_ELEMENTS));
-    } else {
-      const filteredPokemons = [...pokemons].filter((p) =>
-        p.types?.map((t) => t?.name).some((n) => filters.includes(n ?? ''))
-      );
-
-      setVisiblePokemonList(filteredPokemons.slice(0, VISIBLE_ELEMENTS));
-    }
+  const handleFilterByType = (filters: TypeFilters[]): void => {
+    setActiveTypeFilters(filters);
   };
 
   const renderLoadingSkeletons = (): ReactElement[] =>
@@ -128,8 +105,16 @@ export const Home = (): ReactElement => {
       </Grid>
     ));
 
-  const renderPokemonList = (): ReactElement[] =>
-    visiblePokemonList.map((pokemon, i) => (
+  const renderPokemonList = (): ReactElement | ReactElement[] => {
+    if (searchValue && visiblePokemonList.length === 0) {
+      return (
+        <Grid item xs={12}>
+          <Typography variant="h4">No Pokemon Matched Your Search</Typography>
+        </Grid>
+      );
+    }
+
+    return visiblePokemonList.map((pokemon, i) => (
       <Grid
         key={pokemon?.name}
         item
@@ -159,6 +144,7 @@ export const Home = (): ReactElement => {
         )}
       </Grid>
     ));
+  };
 
   return (
     <PageLayout>

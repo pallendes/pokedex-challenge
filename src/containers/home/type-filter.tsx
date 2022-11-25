@@ -11,7 +11,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { CSSProperties, ReactElement, useState } from 'react';
-import { POKEMON_TYPE_COLOR_MAP } from '../common/constants';
+import { POKEMON_TYPE_COLOR_MAP } from '../../common/constants';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -23,26 +23,6 @@ const MenuProps = {
     },
   },
 };
-
-const pokemonTypes = [
-  'Grass',
-  'Poison',
-  'Fire',
-  'Water',
-  'Flying',
-  'Bug',
-  'Normal',
-  'Electric',
-  'Ground',
-  'Fairy',
-  'Psychic',
-  'Fighting',
-  'Rock',
-  'Ice',
-  'Ghost',
-  'Steel',
-  'Dragon',
-];
 
 const getStyles = (
   name: string,
@@ -56,8 +36,10 @@ const getStyles = (
   };
 };
 
+const pokemonTypes = Object.keys(POKEMON_TYPE_COLOR_MAP);
+
 interface TypeFilterProps {
-  onAddFilter: (filters: string[]) => void;
+  onAddFilter: (filters: TypeFilters[]) => void;
 }
 
 export const TypeFilter = ({ onAddFilter }: TypeFilterProps): ReactElement => {
@@ -73,7 +55,7 @@ export const TypeFilter = ({ onAddFilter }: TypeFilterProps): ReactElement => {
     const _pokemonType = typeof value === 'string' ? value.split(',') : value;
 
     setPokemonType(_pokemonType);
-    onAddFilter(_pokemonType);
+    onAddFilter(_pokemonType as TypeFilters[]);
   };
 
   return (
