@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { ApolloProvider } from '@apollo/client';
 import { ThemeProvider } from '@emotion/react';
 import { createTheme, CssBaseline } from '@mui/material';
@@ -7,6 +8,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { client } from './apollo-client';
 import { Favorites } from './containers/favorites';
 import { Home } from './containers/home';
+import { worker } from './__mocks__/browser';
 
 import '@fontsource/exo-2/300.css';
 import '@fontsource/exo-2/400.css';
@@ -29,6 +31,14 @@ const router = createBrowserRouter([
     element: <Favorites />,
   },
 ]);
+
+if (import.meta.env.VITE_USE_MSW_MOCKS === 'true') {
+  try {
+    worker.start();
+  } catch (e) {
+    console.error('Error while loading MSW browser configuration');
+  }
+}
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

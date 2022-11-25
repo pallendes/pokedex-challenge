@@ -14,7 +14,7 @@
     "lint": "eslint . --ext=ts,tsx --max-warnings 0",
     "lint:fix": "npm run lint --cache --format pretty --fix . || true",
     "prepare": "husky install",
-    "test": "jest --passWithNoTests",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
