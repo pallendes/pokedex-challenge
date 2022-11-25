@@ -12,11 +12,14 @@ import {
 } from '@mui/material';
 import { ChangeEvent, ReactElement, useEffect, useState } from 'react';
 import { Waypoint } from 'react-waypoint';
-import { PageLayout } from '../components/ page-layout';
-import { PokemonCard, PokemonCardSkeleton } from '../components/pokemon-card';
-import { TypeFilter } from '../components/type-filter';
-import { useFavorites } from '../hooks/favorites';
-import { Pokemon } from '../__generated__/graphql';
+import { PageLayout } from '../../components/ page-layout';
+import {
+  PokemonCard,
+  PokemonCardSkeleton,
+} from '../../components/pokemon-card';
+import { TypeFilter } from '../../components/type-filter';
+import { useFavorites } from '../../hooks/favorites';
+import { Pokemon } from '../../__generated__/graphql';
 
 const GET_ALL_POKEMONS = gql(/* GraphQL */ `
   query AllPokemon($filter: Boolean, $limit: Int) {
@@ -75,7 +78,7 @@ export const Home = (): ReactElement => {
         break;
     }
 
-    setVisiblePokemonList(sortedPokemons.slice(0, 30));
+    setVisiblePokemonList(sortedPokemons.slice(0, VISIBLE_ELEMENTS));
     setPokemons(sortedPokemons);
     setSortBy(sortValue);
   };
@@ -119,15 +122,23 @@ export const Home = (): ReactElement => {
   };
 
   const renderLoadingSkeletons = (): ReactElement[] =>
-    Array.from(new Array(12)).map((n) => (
-      <Grid key={n} item xs={12} sm={6} md={4} lg={3}>
+    Array.from(new Array(12)).map((_, i) => (
+      <Grid key={i} item xs={12} sm={6} md={4} lg={3}>
         <PokemonCardSkeleton />
       </Grid>
     ));
 
   const renderPokemonList = (): ReactElement[] =>
     visiblePokemonList.map((pokemon, i) => (
-      <Grid key={pokemon?.id} item xs={12} sm={6} md={4} lg={3}>
+      <Grid
+        key={pokemon?.name}
+        item
+        xs={12}
+        sm={6}
+        md={4}
+        lg={3}
+        data-testid={`pokemon-card-${i}`}
+      >
         <PokemonCard
           pokemon={pokemon}
           isFavorite={isFavorite(pokemon)}

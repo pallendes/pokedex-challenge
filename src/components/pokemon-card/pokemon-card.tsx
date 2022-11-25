@@ -1,6 +1,6 @@
 import { Star, StarBorder } from '@mui/icons-material';
 import { Box, Chip, IconButton, Tooltip } from '@mui/material';
-import { memo, ReactElement } from 'react';
+import { ReactElement } from 'react';
 import { POKEMON_TYPE_COLOR_MAP } from '../../common/constants';
 import { Pokemon } from '../../__generated__/graphql';
 import { PokemonCardContainer } from './styled/pokemon-card-container';
@@ -14,7 +14,7 @@ interface PokemonCardProps {
   onFavoriteButtonClick: (pokemon: Pokemon) => void;
 }
 
-const PokemonCardComponent = ({
+export const PokemonCard = ({
   pokemon,
   isFavorite,
   onFavoriteButtonClick,
@@ -24,12 +24,12 @@ const PokemonCardComponent = ({
       <Box position="absolute" sx={{ top: 4, right: 4 }}>
         <IconButton onClick={() => onFavoriteButtonClick(pokemon)}>
           {isFavorite ? (
-            <Tooltip title="Add to favorites">
-              <StarBorder />
-            </Tooltip>
-          ) : (
             <Tooltip title="Remove from favorites">
               <Star />
+            </Tooltip>
+          ) : (
+            <Tooltip title="Add to favorites">
+              <StarBorder />
             </Tooltip>
           )}
         </IconButton>
@@ -60,5 +60,3 @@ const PokemonCardComponent = ({
     </PokemonCardContainer>
   );
 };
-
-export const PokemonCard = memo(PokemonCardComponent);
