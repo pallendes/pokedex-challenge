@@ -11,7 +11,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { ChangeEvent, ReactElement, useEffect, useState } from 'react';
+import debounce from 'lodash.debounce';
+import {
+  ChangeEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { Waypoint } from 'react-waypoint';
 import { PageLayout } from '../../components/ page-layout';
 import {
@@ -78,17 +85,18 @@ export const Home = (): ReactElement => {
     setSortBy(e.target.value);
   };
 
-  let filterTimeout: NodeJS.Timeout;
+  const debouncedSearchChange = useCallback(
+    debounce(
+      (_searchValue: string) => setDebouncedSearchValue(_searchValue),
+      500
+    ),
+    []
+  );
 
   const onSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    clearTimeout(filterTimeout);
-
     const _searchValue = e.target.value;
     setSearchValue(_searchValue);
-
-    filterTimeout = setTimeout(() => {
-      setDebouncedSearchValue(_searchValue);
-    }, 500);
+    debouncedSearchChange(_searchValue);
   };
 
   const handleFavoriteButtonClick = (pokemon: Pokemon): void =>
